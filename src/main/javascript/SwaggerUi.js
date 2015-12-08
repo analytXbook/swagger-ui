@@ -13,7 +13,12 @@ window.SwaggerUi = Backbone.Router.extend({
   // SwaggerUi accepts all the same options as SwaggerApi
   initialize: function(options) {
     options = options || {};
-    if(!options.highlightSizeThreshold) {
+    
+    if (options.defaultModelRendering !== 'model') {
+      options.defaultModelRendering = 'schema';
+    }
+    
+    if (!options.highlightSizeThreshold) {
       options.highlightSizeThreshold = 100000;
     }
 
@@ -90,7 +95,9 @@ window.SwaggerUi = Backbone.Router.extend({
     if (url && url.indexOf('http') !== 0) {
       url = this.buildUrl(window.location.href.toString(), url);
     }
-
+    if(this.api) {
+      this.options.authorizations = this.api.clientAuthorizations.authz;
+    }
     this.options.url = url;
     this.headerView.update(url);
 
@@ -171,9 +178,13 @@ window.SwaggerUi = Backbone.Router.extend({
     if (data === undefined) {
       data = '';
     }
-    $('#message-bar').removeClass('message-fail');
-    $('#message-bar').addClass('message-success');
-    $('#message-bar').html(data);
+    var $msgbar = $('#message-bar');
+    $msgbar.removeClass('message-fail');
+    $msgbar.addClass('message-success');
+    $msgbar.html(data);
+    if(window.SwaggerTranslator) {
+      window.SwaggerTranslator.translate($msgbar);
+    }
   },
 
   // shows message in red
@@ -184,7 +195,7 @@ window.SwaggerUi = Backbone.Router.extend({
     $('#message-bar').removeClass('message-success');
     $('#message-bar').addClass('message-fail');
 
-    var val = $('#message-bar').html(data);
+    var val = $('#message-bar').text(data);
 
     if (this.options.onFailure) {
       this.options.onFailure(data);
@@ -197,6 +208,10 @@ window.SwaggerUi = Backbone.Router.extend({
   renderGFM: function(){
     $('.markdown').each(function(){
       $(this).html(marked($(this).html()));
+    });
+
+    $('.propDesc', '.model-signature .description').each(function () {
+      $(this).html(marked($(this).html())).addClass('markdown');
     });
   }
 
@@ -247,7 +262,7 @@ window.SwaggerUi.Views = {};
         });
     } else if (typeof exports === 'object') {
         // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like enviroments that support module.exports,
+        // only CommonJS-like environments that support module.exports,
         // like Node.
         module.exports = factory(require('b'));
     } else {

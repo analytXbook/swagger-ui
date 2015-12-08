@@ -15,8 +15,12 @@ SwaggerUi.Views.SignatureView = Backbone.View.extend({
 
     $(this.el).html(Handlebars.templates.signature(this.model));
 
-    this.switchToSnippet();
-
+    if (this.model.defaultRendering === 'model') {
+      this.switchToDescription();
+    } else {
+      this.switchToSnippet();
+    }
+    
     this.isParam = this.model.isParam;
 
     if (this.isParam) {
@@ -52,7 +56,9 @@ SwaggerUi.Views.SignatureView = Backbone.View.extend({
       if (e) { e.preventDefault(); }
 
       var textArea = $('textarea', $(this.el.parentNode.parentNode.parentNode));
-      if ($.trim(textArea.val()) === '') {
+
+      // Fix for bug in IE 10/11 which causes placeholder text to be copied to "value"
+      if ($.trim(textArea.val()) === '' || textArea.prop('placeholder') === textArea.val()) {
         textArea.val(this.model.sampleJSON);
       }
     }

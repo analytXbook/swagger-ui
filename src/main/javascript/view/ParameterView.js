@@ -30,7 +30,14 @@ SwaggerUi.Views.ParameterView = Backbone.View.extend({
     this.model.paramType = this.model.in || this.model.paramType;
     this.model.isBody = this.model.paramType === 'body' || this.model.in === 'body';
     this.model.isFile = type && type.toLowerCase() === 'file';
-    this.model.default = (this.model.default || this.model.defaultValue);
+
+    // Allow for default === false
+    if(typeof this.model.default === 'undefined') {
+      this.model.default = this.model.defaultValue;
+    }
+
+    this.model.hasDefault = (typeof this.model.default !== 'undefined');
+    this.model.valueId = 'm' + this.model.name + Math.random();
 
     if (this.model.allowableValues) {
       this.model.isList = true;
@@ -42,7 +49,8 @@ SwaggerUi.Views.ParameterView = Backbone.View.extend({
     var signatureModel = {
       sampleJSON: this.model.sampleJSON,
       isParam: true,
-      signature: this.model.signature
+      signature: this.model.signature,
+      defaultRendering: this.model.defaultRendering
     };
 
     if (this.model.sampleJSON) {
